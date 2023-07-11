@@ -971,17 +971,17 @@ class CognitoUser {
       'SOFTWARE_TOKEN_MFA_CODE': code,
     };
 
-    final authenticationHelper =
-        AuthenticationHelper(pool.getUserPoolId().split('_')[1]);
+    // final authenticationHelper =
+    //     AuthenticationHelper(pool.getUserPoolId().split('_')[1]);
 
-    await getCachedDeviceKeyAndPassword();
-    if (_deviceKey != null) {
-      challengeResponses['DEVICE_KEY'] = _deviceKey;
-    }
+    // await getCachedDeviceKeyAndPassword();
+    // if (_deviceKey != null) {
+    //   challengeResponses['DEVICE_KEY'] = _deviceKey;
+    // }
 
-    if (_clientSecretHash != null) {
-      challengeResponses['SECRET_HASH'] = _clientSecretHash;
-    }
+    // if (_clientSecretHash != null) {
+    //   challengeResponses['SECRET_HASH'] = _clientSecretHash;
+    // }
 
     final paramsReq = {
       'ChallengeName': 'SOFTWARE_TOKEN_MFA',
