@@ -963,6 +963,45 @@ class CognitoUser {
     return _signInUserSession;
   }
 
+  /// This is used by an authenticated user to respond to an TOTP challenge
+    Future<CognitoUserSession?> sendTOTPChallengeAnswer(String code,
+      [Map<String, String>? validationData]) async {
+    final challengeResponses = {
+      'USERNAME': username,
+      'SOFTWARE_TOKEN_MFA_CODE': code,
+    };
+
+    final authenticationHelper =
+        AuthenticationHelper(pool.getUserPoolId().split('_')[1]);
+
+    await getCachedDeviceKeyAndPassword();
+    if (_deviceKey != null) {
+      challengeResponses['DEVICE_KEY'] = _deviceKey;
+    }
+
+    if (_clientSecretHash != null) {
+      challengeResponses['SECRET_HASH'] = _clientSecretHash;
+    }
+
+    final paramsReq = {
+      'ChallengeName': 'SOFTWARE_TOKEN_MFA',
+      'ChallengeResponses': challengeResponses,
+      'ClientId': pool.getClientId(),
+      'ClientMetadata': validationData,
+      'Session': _session,
+    };
+
+    if (getUserContextData() != null) {
+      paramsReq['UserContextData'] = getUserContextData();
+    }
+
+    final data = await client!.request('RespondToAuthChallenge',
+        await _analyticsMetadataParamsDecorator.call(paramsReq));
+
+    return _authenticateUserInternal(data, authenticationHelper);
+  }
+
+
   /// This is used by an authenticated user to change the current password
   Future<bool> changePassword(
       String oldUserPassword, String newUserPassword) async {
