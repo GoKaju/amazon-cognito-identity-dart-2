@@ -1103,8 +1103,10 @@ class CognitoUser {
     final associateSoftwareTokenData = await client!
         .request('AssociateSoftwareToken', associateSoftwareTokenUserParamsReq);
     print(associateSoftwareTokenData);
+    var secretCode = associateSoftwareTokenData['SecretCode'];
+    var userEmail = _signInUserSession!.getIdToken().decodePayload()['email'];
 
-    return associateSoftwareTokenData['SecretCode'];
+    return 'otpauth://totp/Simplepay:$userEmail?secret=$secretCode';
   }
 
   /// This is used by authenticated users to verify TOTP-MFA for him/herself.
