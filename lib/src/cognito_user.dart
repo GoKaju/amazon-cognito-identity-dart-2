@@ -1073,14 +1073,20 @@ class CognitoUser {
       throw Exception('User is not authenticated');
     }
 
-    final mfaOptions = [];
-
     final paramsReq = {
-      'MFAOptions': mfaOptions,
       'AccessToken': _signInUserSession!.getAccessToken().getJwtToken(),
-    };
+      "SMSMfaSettings": { 
+          "Enabled": false,
+          "PreferredMfa": false
+      },
+      "SoftwareTokenMfaSettings": { 
+          "Enabled": false,
+          "PreferredMfa": false
+      }  
+    }
 
-    await client!.request('SetUserSettings', paramsReq);
+   var response = await client!.request('SetUserMFAPreference', paramsReq);
+    print(response);
     return true;
   }
 
@@ -1097,6 +1103,46 @@ class CognitoUser {
 
     return userData['MFAOptions'];
   }
+
+ /// This is used by authenticated users to enable TOTP-MFA for him/herself.
+
+  Future<string> getSecretTOTPSoftwareToken() async {
+    if (_signInUserSession == null || !_signInUserSession!.isValid()) {
+      throw Exception('User is not authenticated');
+    }
+    
+    final associateSoftwareTokenUserParamsReq = {
+      'AccessToken': _signInUserSession!.getAccessToken().getJwtToken(),
+      'Session': _session
+    };
+  
+    final associateSoftwareTokenData = await client!.request('AssociateSoftwareToken', associateSoftwareTokenUserParamsReq);
+    print(associateSoftwareTokenData);
+
+    return  associateSoftwareTokenData['SecretCode'];
+  }
+
+
+  /// This is used by authenticated users to verify TOTP-MFA for him/herself.
+
+  Future<bool> verifySoftwareToken(String code = '')async {
+
+ if (_signInUserSession == null || !_signInUserSession!.isValid()) {
+      throw Exception('User is not authenticated');
+    }
+
+    final verifySoftwareTokenUserParamsReq = {
+      'AccessToken': _signInUserSession!.getAccessToken().getJwtToken(),
+      'Session': _session,
+      'FriendlyDeviceName': 'Main Device',
+      'UserCode': code
+    };
+
+    final verifySoftwareTokenData = await client!.request('VerifySoftwareToken', verifySoftwareTokenUserParamsReq);
+
+    return verifySoftwareTokenData['Status'] == 'SUCCESS';
+  }
+
 
   /// This is used to initiate a forgot password request
   Future forgotPassword() async {
