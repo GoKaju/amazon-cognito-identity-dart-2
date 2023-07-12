@@ -971,18 +971,6 @@ class CognitoUser {
       'SOFTWARE_TOKEN_MFA_CODE': code,
     };
 
-    // final authenticationHelper =
-    //     AuthenticationHelper(pool.getUserPoolId().split('_')[1]);
-
-    // await getCachedDeviceKeyAndPassword();
-    // if (_deviceKey != null) {
-    //   challengeResponses['DEVICE_KEY'] = _deviceKey;
-    // }
-
-    // if (_clientSecretHash != null) {
-    //   challengeResponses['SECRET_HASH'] = _clientSecretHash;
-    // }
-
     final paramsReq = {
       'ChallengeName': 'SOFTWARE_TOKEN_MFA',
       'ChallengeResponses': challengeResponses,
@@ -1106,7 +1094,7 @@ class CognitoUser {
 
  /// This is used by authenticated users to enable TOTP-MFA for him/herself.
 
-  Future<string> getSecretTOTPSoftwareToken() async {
+  Future<String> getSecretTOTPSoftwareToken() async {
     if (_signInUserSession == null || !_signInUserSession!.isValid()) {
       throw Exception('User is not authenticated');
     }
