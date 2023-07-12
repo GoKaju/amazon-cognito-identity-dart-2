@@ -498,7 +498,7 @@ class CognitoUser {
     if (authenticationFlowType == 'USER_PASSWORD_AUTH') {
       return await _authenticateUserPlainUsernamePassword(authDetails);
     } else if (authenticationFlowType == 'USER_SRP_AUTH' ||
-			         authenticationFlowType == 'CUSTOM_AUTH') {
+        authenticationFlowType == 'CUSTOM_AUTH') {
       return await _authenticateUserDefaultAuth(authDetails);
     }
     throw UnimplementedError('Authentication flow type is not supported.');
@@ -964,12 +964,15 @@ class CognitoUser {
   }
 
   /// This is used by an authenticated user to respond to an TOTP challenge
-    Future<CognitoUserSession?> sendTOTPChallengeAnswer(String code,
+  Future<CognitoUserSession?> sendTOTPChallengeAnswer(String code,
       [Map<String, String>? validationData]) async {
     final challengeResponses = {
       'USERNAME': username,
       'SOFTWARE_TOKEN_MFA_CODE': code,
     };
+
+    final authenticationHelper =
+        AuthenticationHelper(pool.getUserPoolId().split('_')[1]);
 
     final paramsReq = {
       'ChallengeName': 'SOFTWARE_TOKEN_MFA',
@@ -988,7 +991,6 @@ class CognitoUser {
 
     return _authenticateUserInternal(data, authenticationHelper);
   }
-
 
   /// This is used by an authenticated user to change the current password
   Future<bool> changePassword(
@@ -1016,7 +1018,7 @@ class CognitoUser {
     if (_signInUserSession == null || !_signInUserSession!.isValid()) {
       throw Exception('User is not authenticated');
     }
-    
+
     bool phoneNumberVerified = false;
     final getUserParamsReq = {
       'AccessToken': _signInUserSession!.getAccessToken().getJwtToken(),
@@ -1037,7 +1039,7 @@ class CognitoUser {
     if (!phoneNumberVerified) {
       throw CognitoUserPhoneNumberVerificationNecessaryException(
           signInUserSession: _signInUserSession);
-    }    
+    }
 
     final mfaOptions = [];
     final mfaEnabled = {
@@ -1063,17 +1065,11 @@ class CognitoUser {
 
     final paramsReq = {
       'AccessToken': _signInUserSession!.getAccessToken().getJwtToken(),
-      "SMSMfaSettings": { 
-          "Enabled": false,
-          "PreferredMfa": false
-      },
-      "SoftwareTokenMfaSettings": { 
-          "Enabled": false,
-          "PreferredMfa": false
-      }  
-    }
+      "SMSMfaSettings": {"Enabled": false, "PreferredMfa": false},
+      "SoftwareTokenMfaSettings": {"Enabled": false, "PreferredMfa": false}
+    };
 
-   var response = await client!.request('SetUserMFAPreference', paramsReq);
+    var response = await client!.request('SetUserMFAPreference', paramsReq);
     print(response);
     return true;
   }
@@ -1092,30 +1088,29 @@ class CognitoUser {
     return userData['MFAOptions'];
   }
 
- /// This is used by authenticated users to enable TOTP-MFA for him/herself.
+  /// This is used by authenticated users to enable TOTP-MFA for him/herself.
 
   Future<String> getSecretTOTPSoftwareToken() async {
     if (_signInUserSession == null || !_signInUserSession!.isValid()) {
       throw Exception('User is not authenticated');
     }
-    
+
     final associateSoftwareTokenUserParamsReq = {
       'AccessToken': _signInUserSession!.getAccessToken().getJwtToken(),
       'Session': _session
     };
-  
-    final associateSoftwareTokenData = await client!.request('AssociateSoftwareToken', associateSoftwareTokenUserParamsReq);
+
+    final associateSoftwareTokenData = await client!
+        .request('AssociateSoftwareToken', associateSoftwareTokenUserParamsReq);
     print(associateSoftwareTokenData);
 
-    return  associateSoftwareTokenData['SecretCode'];
+    return associateSoftwareTokenData['SecretCode'];
   }
-
 
   /// This is used by authenticated users to verify TOTP-MFA for him/herself.
 
-  Future<bool> verifySoftwareToken(String code = '')async {
-
- if (_signInUserSession == null || !_signInUserSession!.isValid()) {
+  Future<bool> verifySoftwareToken(String code) async {
+    if (_signInUserSession == null || !_signInUserSession!.isValid()) {
       throw Exception('User is not authenticated');
     }
 
@@ -1126,11 +1121,11 @@ class CognitoUser {
       'UserCode': code
     };
 
-    final verifySoftwareTokenData = await client!.request('VerifySoftwareToken', verifySoftwareTokenUserParamsReq);
+    final verifySoftwareTokenData = await client!
+        .request('VerifySoftwareToken', verifySoftwareTokenUserParamsReq);
 
     return verifySoftwareTokenData['Status'] == 'SUCCESS';
   }
-
 
   /// This is used to initiate a forgot password request
   Future forgotPassword() async {
