@@ -1118,8 +1118,8 @@ class CognitoUser {
 
     final verifySoftwareTokenUserParamsReq = {
       'AccessToken': _signInUserSession!.getAccessToken().getJwtToken(),
-      'Session': _session,
-      'FriendlyDeviceName': 'Main Device',
+      // 'Session': _signInUserSession,
+      'FriendlyDeviceName': 'My Device',
       'UserCode': code
     };
 
