@@ -1126,7 +1126,19 @@ class CognitoUser {
     final verifySoftwareTokenData = await client!
         .request('VerifySoftwareToken', verifySoftwareTokenUserParamsReq);
 
-    return verifySoftwareTokenData['Status'] == 'SUCCESS';
+    if (verifySoftwareTokenData['Status'] == 'SUCCESS') {
+      // activate TOTP MFA in the account
+
+      final paramsReq = {
+        'AccessToken': _signInUserSession!.getAccessToken().getJwtToken(),
+        // "SMSMfaSettings": {"Enabled": false, "PreferredMfa": false},
+        "SoftwareTokenMfaSettings": {"Enabled": true, "PreferredMfa": true}
+      };
+      var response = await client!.request('SetUserMFAPreference', paramsReq);
+      print(response);
+      return true;
+    }
+    return false;
   }
 
   /// This is used to initiate a forgot password request
