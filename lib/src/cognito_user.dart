@@ -1096,8 +1096,8 @@ class CognitoUser {
     }
 
     final associateSoftwareTokenUserParamsReq = {
-      'AccessToken': _signInUserSession!.getAccessToken().getJwtToken(),
-      'Session': _session
+      'AccessToken': _signInUserSession!.getAccessToken().getJwtToken()
+      // 'Session': _session
     };
 
     final associateSoftwareTokenData = await client!
